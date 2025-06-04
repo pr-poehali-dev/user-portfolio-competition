@@ -1,12 +1,31 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Header from "@/components/layout/Header";
+import ParticipantDashboard from "@/components/participant/Dashboard";
+import JuryDashboard from "@/components/jury/JuryDashboard";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 const Index = () => {
+  const [currentRole, setCurrentRole] = useState<
+    "participant" | "jury" | "admin"
+  >("participant");
+
+  const renderDashboard = () => {
+    switch (currentRole) {
+      case "participant":
+        return <ParticipantDashboard />;
+      case "jury":
+        return <JuryDashboard />;
+      case "admin":
+        return <AdminDashboard />;
+      default:
+        return <ParticipantDashboard />;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4 color-black text-black">Добро пожаловать!</h1>
-        <p className="text-xl text-gray-600">тут будет отображаться ваш проект</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header currentRole={currentRole} onRoleChange={setCurrentRole} />
+      {renderDashboard()}
     </div>
   );
 };
