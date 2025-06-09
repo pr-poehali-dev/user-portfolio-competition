@@ -1,14 +1,9 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
+import { useAuth } from "@/hooks/useAuth";
 
-interface HeaderProps {
-  currentRole: "participant" | "jury" | "admin";
-  onRoleChange: (role: "participant" | "jury" | "admin") => void;
-}
-
-const Header = ({ currentRole, onRoleChange }: HeaderProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Header = () => {
+  const { user, logout } = useAuth();
 
   const roleLabels = {
     participant: "Участник",
@@ -28,41 +23,24 @@ const Header = ({ currentRole, onRoleChange }: HeaderProps) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="flex items-center space-x-3">
+              <div className="text-right">
+                <div className="text-sm font-medium text-gray-900">
+                  {user?.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {user?.role && roleLabels[user.role]}
+                </div>
+              </div>
               <Button
                 variant="outline"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center space-x-2"
+                size="sm"
+                onClick={logout}
+                className="flex items-center space-x-1"
               >
-                <Icon name="User" size={16} />
-                <span>{roleLabels[currentRole]}</span>
-                <Icon name="ChevronDown" size={16} />
+                <Icon name="LogOut" size={16} />
+                <span>Выйти</span>
               </Button>
-
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border">
-                  <div className="py-1">
-                    {(
-                      Object.keys(roleLabels) as Array<keyof typeof roleLabels>
-                    ).map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => {
-                          onRoleChange(role);
-                          setIsMenuOpen(false);
-                        }}
-                        className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
-                          currentRole === role
-                            ? "bg-purple-50 text-purple-600"
-                            : "text-gray-700"
-                        }`}
-                      >
-                        {roleLabels[role]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

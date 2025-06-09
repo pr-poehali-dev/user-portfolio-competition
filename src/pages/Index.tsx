@@ -1,16 +1,14 @@
-import { useState } from "react";
 import Header from "@/components/layout/Header";
 import ParticipantDashboard from "@/components/participant/Dashboard";
 import JuryDashboard from "@/components/jury/JuryDashboard";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
-  const [currentRole, setCurrentRole] = useState<
-    "participant" | "jury" | "admin"
-  >("participant");
+  const { user } = useAuth();
 
   const renderDashboard = () => {
-    switch (currentRole) {
+    switch (user?.role) {
       case "participant":
         return <ParticipantDashboard />;
       case "jury":
@@ -24,7 +22,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header currentRole={currentRole} onRoleChange={setCurrentRole} />
+      <Header />
       {renderDashboard()}
     </div>
   );
