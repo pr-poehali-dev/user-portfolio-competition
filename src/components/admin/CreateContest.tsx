@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,80 +6,29 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon";
 import { useAuth } from "@/hooks/useAuth";
+import { useContestForm } from "@/hooks/useContestForm";
+import FileUploadSection from "./contest/FileUploadSection";
+import JurySection from "./contest/JurySection";
+import { ContestData } from "@/types/contest";
 
 const CreateContest = () => {
   const { getJuryUsers } = useAuth();
-  const [dragActive, setDragActive] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [juryEmails, setJuryEmails] = useState<string[]>([""]);
-  const [selectedJury, setSelectedJury] = useState<string[]>([]);
-  const [jurySelectionMode, setJurySelectionMode] = useState<
-    "select" | "manual"
-  >("select");
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    evaluationDeadline: "",
-    maxFileSize: 10,
-    allowedFormats: ["JPG", "PNG", "PDF", "DOC", "DOCX", "PPTX"],
-    videoLinkAllowed: true,
-    paymentReceiptRequired: true,
-    isPublic: true,
-    targetAudience: "all", // all, preschool, school, adults
-  });
+  const {
+    formData,
+    updateFormData,
+    selectedFiles,
+    setSelectedFiles,
+    juryEmails,
+    setJuryEmails,
+    selectedJury,
+    setSelectedJury,
+    jurySelectionMode,
+    setJurySelectionMode,
+    validateForm,
+  } = useContestForm();
 
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const files = Array.from(e.dataTransfer.files);
-      validateAndSetFiles(files);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      validateAndSetFiles(files);
-    }
-  };
-
-  const validateAndSetFiles = (files: File[]) => {
-    const validFiles = files.filter((file) => {
-      const fileExtension = file.name.split(".").pop()?.toUpperCase();
-      const isValidFormat = formData.allowedFormats.includes(
-        fileExtension || "",
-      );
-      const isValidSize = file.size <= formData.maxFileSize * 1024 * 1024;
-
-      if (!isValidFormat) {
-        alert(`Файл ${file.name} имеет недопустимый формат`);
-        return false;
-      }
-      if (!isValidSize) {
-        alert(
-          `Файл ${file.name} превышает максимальный размер ${formData.maxFileSize}MB`,
-        );
-        return false;
-      }
-      return true;
-    });
-
-    setSelectedFiles((prev) => [...prev, ...validFiles]);
+  const handleFilesSelect = (newFiles: File[]) => {
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
   };
 
   const removeFile = (index: number) => {
@@ -114,46 +62,13 @@ const CreateContest = () => {
   };
 
   const handleSubmit = (isDraft = false) => {
-    // Валидация формы
-    if (!formData.name.trim()) {
-      alert("Введите название конкурса");
-      return;
-    }
-    if (!formData.description.trim()) {
-      alert("Введите описание конкурса");
-      return;
-    }
-    if (!formData.startDate || !formData.endDate) {
-      alert("Укажите даты начала и окончания конкурса");
-      return;
-    }
-    if (!formData.evaluationDeadline) {
-      alert("Укажите дедлайн оценки для жюри");
-      return;
-    }
-    if (selectedFiles.length === 0) {
-      alert("Загрузите положение о конкурсе");
+    const validationError = validateForm();
+    if (validationError) {
+      alert(validationError);
       return;
     }
 
-    // Проверка жюри
-    if (jurySelectionMode === "select") {
-      if (selectedJury.length < 3) {
-        alert("Выберите минимум 3 членов жюри");
-        return;
-      }
-    } else {
-      const validJuryEmails = juryEmails.filter(
-        (email) => email.trim() && email.includes("@"),
-      );
-      if (validJuryEmails.length < 3) {
-        alert("Добавьте минимум 3 email адреса жюри");
-        return;
-      }
-    }
-
-    // Отправка формы
-    const contestData = {
+    const contestData: ContestData = {
       ...formData,
       regulations: selectedFiles,
       jury:
@@ -190,9 +105,7 @@ const CreateContest = () => {
                 id="contestName"
                 placeholder="Введите название конкурса"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => updateFormData({ name: e.target.value })}
               />
             </div>
             <div>
@@ -201,7 +114,7 @@ const CreateContest = () => {
                 id="targetAudience"
                 value={formData.targetAudience}
                 onChange={(e) =>
-                  setFormData({ ...formData, targetAudience: e.target.value })
+                  updateFormData({ targetAudience: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
@@ -220,9 +133,7 @@ const CreateContest = () => {
               placeholder="Подробное описание конкурса, его целей и требований..."
               rows={4}
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={(e) => updateFormData({ description: e.target.value })}
             />
           </div>
 
@@ -234,9 +145,7 @@ const CreateContest = () => {
                 id="startDate"
                 type="datetime-local"
                 value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
+                onChange={(e) => updateFormData({ startDate: e.target.value })}
               />
             </div>
             <div>
@@ -245,9 +154,7 @@ const CreateContest = () => {
                 id="endDate"
                 type="datetime-local"
                 value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
+                onChange={(e) => updateFormData({ endDate: e.target.value })}
               />
             </div>
             <div>
@@ -257,82 +164,20 @@ const CreateContest = () => {
                 type="datetime-local"
                 value={formData.evaluationDeadline}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    evaluationDeadline: e.target.value,
-                  })
+                  updateFormData({ evaluationDeadline: e.target.value })
                 }
               />
             </div>
           </div>
 
-          {/* Положение о конкурсе */}
-          <div>
-            <Label>Положение о конкурсе *</Label>
-            <div
-              className={`mt-1 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                dragActive
-                  ? "border-purple-500 bg-purple-50"
-                  : "border-gray-300"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <Icon
-                name="Upload"
-                className="mx-auto h-10 w-10 text-gray-400 mb-3"
-              />
-              <p className="text-gray-600 mb-2">
-                Перетащите файлы сюда или
-                <label className="text-purple-600 hover:text-purple-700 ml-1 cursor-pointer">
-                  выберите файлы
-                  <input
-                    type="file"
-                    multiple
-                    accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.pptx"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                </label>
-              </p>
-              <p className="text-sm text-gray-500">
-                Поддерживаются: {formData.allowedFormats.join(", ")} (до{" "}
-                {formData.maxFileSize}MB)
-              </p>
-            </div>
-
-            {selectedFiles.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Icon
-                        name="FileText"
-                        size={16}
-                        className="text-gray-500"
-                      />
-                      <span className="text-sm font-medium">{file.name}</span>
-                      <span className="text-xs text-gray-500">
-                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeFile(index)}
-                    >
-                      <Icon name="X" size={16} />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Файлы */}
+          <FileUploadSection
+            allowedFormats={formData.allowedFormats}
+            maxFileSize={formData.maxFileSize}
+            selectedFiles={selectedFiles}
+            onFilesSelect={handleFilesSelect}
+            onFileRemove={removeFile}
+          />
 
           {/* Настройки файлов */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -347,10 +192,7 @@ const CreateContest = () => {
                 max="100"
                 value={formData.maxFileSize}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    maxFileSize: parseInt(e.target.value),
-                  })
+                  updateFormData({ maxFileSize: parseInt(e.target.value) })
                 }
               />
             </div>
@@ -360,8 +202,7 @@ const CreateContest = () => {
                 id="allowedFormats"
                 value={formData.allowedFormats.join(", ")}
                 onChange={(e) =>
-                  setFormData({
-                    ...formData,
+                  updateFormData({
                     allowedFormats: e.target.value
                       .split(", ")
                       .map((f) => f.trim().toUpperCase()),
@@ -378,7 +219,7 @@ const CreateContest = () => {
                 id="videoLinkAllowed"
                 checked={formData.videoLinkAllowed}
                 onCheckedChange={(checked) =>
-                  setFormData({ ...formData, videoLinkAllowed: !!checked })
+                  updateFormData({ videoLinkAllowed: !!checked })
                 }
               />
               <Label htmlFor="videoLinkAllowed">
@@ -390,10 +231,7 @@ const CreateContest = () => {
                 id="paymentReceiptRequired"
                 checked={formData.paymentReceiptRequired}
                 onCheckedChange={(checked) =>
-                  setFormData({
-                    ...formData,
-                    paymentReceiptRequired: !!checked,
-                  })
+                  updateFormData({ paymentReceiptRequired: !!checked })
                 }
               />
               <Label htmlFor="paymentReceiptRequired">
@@ -405,7 +243,7 @@ const CreateContest = () => {
                 id="isPublic"
                 checked={formData.isPublic}
                 onCheckedChange={(checked) =>
-                  setFormData({ ...formData, isPublic: !!checked })
+                  updateFormData({ isPublic: !!checked })
                 }
               />
               <Label htmlFor="isPublic">
@@ -414,102 +252,20 @@ const CreateContest = () => {
             </div>
           </div>
 
-          {/* Назначение жюри */}
-          <div>
-            <Label>Назначение жюри (минимум 3 человека) *</Label>
+          {/* Жюри */}
+          <JurySection
+            jurySelectionMode={jurySelectionMode}
+            onModeChange={setJurySelectionMode}
+            selectedJury={selectedJury}
+            onJuryToggle={toggleJurySelection}
+            juryEmails={juryEmails}
+            onEmailUpdate={updateJuryEmail}
+            onEmailAdd={addJuryEmail}
+            onEmailRemove={removeJuryEmail}
+            juryUsers={getJuryUsers()}
+          />
 
-            <div className="flex space-x-4 mt-2 mb-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="juryMode"
-                  checked={jurySelectionMode === "select"}
-                  onChange={() => setJurySelectionMode("select")}
-                />
-                <span>Выбрать из пользователей</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="juryMode"
-                  checked={jurySelectionMode === "manual"}
-                  onChange={() => setJurySelectionMode("manual")}
-                />
-                <span>Ввести вручную</span>
-              </label>
-            </div>
-
-            {jurySelectionMode === "select" ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
-                  {getJuryUsers().map((juryUser) => (
-                    <div
-                      key={juryUser.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedJury.includes(juryUser.id)
-                          ? "border-purple-500 bg-purple-50"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                      onClick={() => toggleJurySelection(juryUser.id)}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={selectedJury.includes(juryUser.id)}
-                          onChange={() => toggleJurySelection(juryUser.id)}
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">{juryUser.fullName}</p>
-                          <p className="text-sm text-gray-600">
-                            {juryUser.email}
-                          </p>
-                          {juryUser.institution && (
-                            <p className="text-xs text-gray-500">
-                              {juryUser.institution}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm text-gray-600">
-                  Выбрано: {selectedJury.length} из {getJuryUsers().length}{" "}
-                  доступных
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {juryEmails.map((email, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <Input
-                      placeholder="email@example.com"
-                      type="email"
-                      value={email}
-                      onChange={(e) => updateJuryEmail(index, e.target.value)}
-                      className="flex-1"
-                    />
-                    {juryEmails.length > 3 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeJuryEmail(index)}
-                      >
-                        <Icon name="X" size={16} />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                {juryEmails.length < 10 && (
-                  <Button variant="outline" size="sm" onClick={addJuryEmail}>
-                    <Icon name="Plus" size={16} className="mr-2" />
-                    Добавить члена жюри
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Кнопки действий */}
+          {/* Действия */}
           <div className="flex justify-end space-x-4 pt-6 border-t">
             <Button variant="outline" onClick={() => handleSubmit(true)}>
               <Icon name="Save" size={16} className="mr-2" />
