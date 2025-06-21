@@ -18,12 +18,16 @@ export const useFileUpload = (
 
   const validateAndFilterFiles = (files: File[]): File[] => {
     return files.filter((file) => {
-      const fileExtension = file.name.split(".").pop()?.toUpperCase();
-      const isValidFormat = allowedFormats.includes(fileExtension || "");
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+      const isValidFormat = allowedFormats.some(
+        (format) => format.toLowerCase() === fileExtension,
+      );
       const isValidSize = file.size <= maxFileSize * 1024 * 1024;
 
       if (!isValidFormat) {
-        alert(`Файл ${file.name} имеет недопустимый формат`);
+        alert(
+          `Файл ${file.name} имеет недопустимый формат. Разрешены: ${allowedFormats.join(", ")}`,
+        );
         return false;
       }
       if (!isValidSize) {
