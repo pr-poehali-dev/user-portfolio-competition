@@ -253,11 +253,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log("Deleting contest:", contestId);
   };
 
-  const getJuryUsers = () => {
-    return [...mockUsers, ...pendingUsers].filter(
-      (user) =>
-        user.role === "teacher" || user.role === "educator" || user.isJury,
-    );
+  const getJuryUsers = (): User[] => {
+    const users = JSON.parse(localStorage.getItem("users") || "[]") as User[];
+    return users.filter((user) => user.role === "jury" && user.adminApproved);
   };
 
   const getAllUsers = () => {
