@@ -9,8 +9,30 @@ import ParticipantsList from "./ParticipantsList";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<
-    "manage" | "create" | "diplomas" | "users" | "participants"
+    "manage" | "create" | "edit" | "diplomas" | "users" | "participants"
   >("manage");
+  const [editingContestId, setEditingContestId] = useState<number | null>(null);
+
+  // Обработка хеша URL для навигации
+  useState(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash === "#admin/create") {
+        setActiveTab("create");
+      } else if (hash.startsWith("#admin/edit/")) {
+        const contestId = parseInt(hash.split("/")[2]);
+        setEditingContestId(contestId);
+        setActiveTab("edit");
+      } else {
+        setActiveTab("manage");
+      }
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    handleHashChange(); // Проверить текущий хеш при загрузке
+
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  });
 
   const tabs = [
     { id: "manage" as const, label: "Управление конкурсами", icon: "Settings" },
@@ -56,6 +78,7 @@ const AdminDashboard = () => {
       <div className="animate-fade-in">
         {activeTab === "manage" && <ManageContests />}
         {activeTab === "create" && <CreateContest />}
+        {activeTab === "edit" && <CreateContest contestId={editingContestId} />}
         {activeTab === "diplomas" && <GenerateDiplomas />}
         {activeTab === "users" && <ManageUsers />}
         {activeTab === "participants" && <ParticipantsList />}

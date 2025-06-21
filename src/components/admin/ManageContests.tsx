@@ -138,7 +138,10 @@ const ManageContests = () => {
               <Icon name="Settings" />
               <span>Управление конкурсами</span>
             </span>
-            <Button className="bg-purple-600 hover:bg-purple-700">
+            <Button
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => (window.location.hash = "#admin/create")}
+            >
               <Icon name="Plus" size={16} className="mr-2" />
               Создать конкурс
             </Button>
@@ -194,7 +197,13 @@ const ManageContests = () => {
                     <Icon name="Eye" size={14} className="mr-1" />
                     Просмотр
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      (window.location.hash = `#admin/edit/${contest.id}`)
+                    }
+                  >
                     <Icon name="Edit" size={14} className="mr-1" />
                     Редактировать
                   </Button>

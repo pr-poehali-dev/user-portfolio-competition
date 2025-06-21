@@ -11,7 +11,12 @@ import FileUploadSection from "./contest/FileUploadSection";
 import JurySection from "./contest/JurySection";
 import { ContestData } from "@/types/contest";
 
-const CreateContest = () => {
+interface CreateContestProps {
+  contestId?: number | null;
+}
+
+const CreateContest = ({ contestId }: CreateContestProps) => {
+  const isEditing = contestId !== null && contestId !== undefined;
   const { getJuryUsers } = useAuth();
   const {
     formData,
@@ -108,8 +113,12 @@ const CreateContest = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Icon name="Plus" />
-            <span>Создание нового конкурса</span>
+            <Icon name={isEditing ? "Edit" : "Plus"} />
+            <span>
+              {isEditing
+                ? "Редактирование конкурса"
+                : "Создание нового конкурса"}
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -292,7 +301,9 @@ const CreateContest = () => {
               onClick={() => handleSubmit(false)}
             >
               <Icon name="Rocket" size={16} className="mr-2" />
-              Создать и опубликовать конкурс
+              {isEditing
+                ? "Сохранить изменения"
+                : "Создать и опубликовать конкурс"}
             </Button>
           </div>
         </CardContent>
