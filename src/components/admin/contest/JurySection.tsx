@@ -38,7 +38,7 @@ const JurySection = ({
           <Button
             type="button"
             variant={jurySelectionMode === "select" ? "default" : "outline"}
-            onClick={() => setJurySelectionMode("select")}
+            onClick={() => onModeChange("select")}
             size="sm"
           >
             <Icon name="Users" size={16} className="mr-2" />
@@ -47,7 +47,7 @@ const JurySection = ({
           <Button
             type="button"
             variant={jurySelectionMode === "invite" ? "default" : "outline"}
-            onClick={() => setJurySelectionMode("invite")}
+            onClick={() => onModeChange("invite")}
             size="sm"
           >
             <Icon name="Mail" size={16} className="mr-2" />
@@ -58,7 +58,7 @@ const JurySection = ({
         {jurySelectionMode === "select" && (
           <JurySelectionList
             selectedJury={selectedJury}
-            onJurySelect={setSelectedJury}
+            onJurySelect={onJuryToggle}
           />
         )}
 
