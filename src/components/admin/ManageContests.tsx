@@ -1,10 +1,22 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ManageContests = () => {
-  const contests = [
+  const [contests, setContests] = useState([
     {
       id: 1,
       name: "Конкурс дизайна 2024",
@@ -35,7 +47,7 @@ const ManageContests = () => {
       totalWorks: 20,
       evaluatedWorks: 20,
     },
-  ];
+  ]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -52,6 +64,11 @@ const ManageContests = () => {
     }
   };
 
+  const handleDeleteContest = (contestId: number, contestName: string) => {
+    setContests(contests.filter((c) => c.id !== contestId));
+    alert(`Конкурс "${contestName}" удален`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -62,7 +79,9 @@ const ManageContests = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Всего конкурсов
                 </p>
-                <p className="text-3xl font-bold text-gray-900">12</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {contests.length}
+                </p>
               </div>
               <Icon name="Trophy" className="h-8 w-8 text-purple-600" />
             </div>
@@ -74,7 +93,9 @@ const ManageContests = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Активных</p>
-                <p className="text-3xl font-bold text-blue-600">3</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {contests.filter((c) => c.status === "active").length}
+                </p>
               </div>
               <Icon name="Play" className="h-8 w-8 text-blue-600" />
             </div>
@@ -86,7 +107,9 @@ const ManageContests = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Участников</p>
-                <p className="text-3xl font-bold text-green-600">47</p>
+                <p className="text-3xl font-bold text-green-600">
+                  {contests.reduce((sum, c) => sum + c.participants, 0)}
+                </p>
               </div>
               <Icon name="Users" className="h-8 w-8 text-green-600" />
             </div>
@@ -98,7 +121,9 @@ const ManageContests = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Работ</p>
-                <p className="text-3xl font-bold text-orange-600">128</p>
+                <p className="text-3xl font-bold text-orange-600">
+                  {contests.reduce((sum, c) => sum + c.totalWorks, 0)}
+                </p>
               </div>
               <Icon name="FileText" className="h-8 w-8 text-orange-600" />
             </div>
@@ -164,7 +189,7 @@ const ManageContests = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm">
                     <Icon name="Eye" size={14} className="mr-1" />
                     Просмотр
@@ -183,14 +208,39 @@ const ManageContests = () => {
                       Результаты
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Icon name="Trash2" size={14} className="mr-1" />
-                    Удалить
-                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Icon name="Trash2" size={14} className="mr-1" />
+                        Удалить
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Удаление конкурса</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Вы уверены, что хотите удалить конкурс "{contest.name}
+                          "? Это действие нельзя отменить. Все работы и оценки
+                          будут удалены.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Отмена</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() =>
+                            handleDeleteContest(contest.id, contest.name)
+                          }
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Удалить
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             ))}

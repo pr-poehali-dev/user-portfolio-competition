@@ -6,11 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon";
+import { useAuth } from "@/hooks/useAuth";
 
 const CreateContest = () => {
+  const { getJuryUsers } = useAuth();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [juryEmails, setJuryEmails] = useState<string[]>([""]);
+  const [selectedJury, setSelectedJury] = useState<string[]>([]);
+  const [jurySelectionMode, setJurySelectionMode] = useState<
+    "select" | "manual"
+  >("select");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -99,6 +105,14 @@ const CreateContest = () => {
     setJuryEmails(newEmails);
   };
 
+  const toggleJurySelection = (juryId: string) => {
+    setSelectedJury((prev) =>
+      prev.includes(juryId)
+        ? prev.filter((id) => id !== juryId)
+        : [...prev, juryId],
+    );
+  };
+
   const handleSubmit = (isDraft = false) => {
     // Валидация формы
     if (!formData.name.trim()) {
@@ -122,19 +136,30 @@ const CreateContest = () => {
       return;
     }
 
-    const validJuryEmails = juryEmails.filter(
-      (email) => email.trim() && email.includes("@"),
-    );
-    if (validJuryEmails.length < 3) {
-      alert("Добавьте минимум 3 email адреса жюри");
-      return;
+    // Проверка жюри
+    if (jurySelectionMode === "select") {
+      if (selectedJury.length < 3) {
+        alert("Выберите минимум 3 членов жюри");
+        return;
+      }
+    } else {
+      const validJuryEmails = juryEmails.filter(
+        (email) => email.trim() && email.includes("@"),
+      );
+      if (validJuryEmails.length < 3) {
+        alert("Добавьте минимум 3 email адреса жюри");
+        return;
+      }
     }
 
     // Отправка формы
     const contestData = {
       ...formData,
       regulations: selectedFiles,
-      jury: validJuryEmails,
+      jury:
+        jurySelectionMode === "select"
+          ? selectedJury
+          : juryEmails.filter((email) => email.trim()),
       status: isDraft ? "draft" : "published",
       createdAt: new Date().toISOString(),
     };
@@ -391,35 +416,97 @@ const CreateContest = () => {
 
           {/* Назначение жюри */}
           <div>
-            <Label>Назначение жюри (от 3 до 10 человек) *</Label>
-            <div className="space-y-3 mt-2">
-              {juryEmails.map((email, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <Input
-                    placeholder="email@example.com"
-                    type="email"
-                    value={email}
-                    onChange={(e) => updateJuryEmail(index, e.target.value)}
-                    className="flex-1"
-                  />
-                  {juryEmails.length > 3 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeJuryEmail(index)}
-                    >
-                      <Icon name="X" size={16} />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              {juryEmails.length < 10 && (
-                <Button variant="outline" size="sm" onClick={addJuryEmail}>
-                  <Icon name="Plus" size={16} className="mr-2" />
-                  Добавить члена жюри
-                </Button>
-              )}
+            <Label>Назначение жюри (минимум 3 человека) *</Label>
+
+            <div className="flex space-x-4 mt-2 mb-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="juryMode"
+                  checked={jurySelectionMode === "select"}
+                  onChange={() => setJurySelectionMode("select")}
+                />
+                <span>Выбрать из пользователей</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="juryMode"
+                  checked={jurySelectionMode === "manual"}
+                  onChange={() => setJurySelectionMode("manual")}
+                />
+                <span>Ввести вручную</span>
+              </label>
             </div>
+
+            {jurySelectionMode === "select" ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto border rounded-lg p-4">
+                  {getJuryUsers().map((juryUser) => (
+                    <div
+                      key={juryUser.id}
+                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        selectedJury.includes(juryUser.id)
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                      onClick={() => toggleJurySelection(juryUser.id)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          checked={selectedJury.includes(juryUser.id)}
+                          onChange={() => toggleJurySelection(juryUser.id)}
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium">{juryUser.fullName}</p>
+                          <p className="text-sm text-gray-600">
+                            {juryUser.email}
+                          </p>
+                          {juryUser.institution && (
+                            <p className="text-xs text-gray-500">
+                              {juryUser.institution}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-600">
+                  Выбрано: {selectedJury.length} из {getJuryUsers().length}{" "}
+                  доступных
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {juryEmails.map((email, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <Input
+                      placeholder="email@example.com"
+                      type="email"
+                      value={email}
+                      onChange={(e) => updateJuryEmail(index, e.target.value)}
+                      className="flex-1"
+                    />
+                    {juryEmails.length > 3 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeJuryEmail(index)}
+                      >
+                        <Icon name="X" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+                {juryEmails.length < 10 && (
+                  <Button variant="outline" size="sm" onClick={addJuryEmail}>
+                    <Icon name="Plus" size={16} className="mr-2" />
+                    Добавить члена жюри
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Кнопки действий */}

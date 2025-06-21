@@ -4,9 +4,21 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import Icon from "@/components/ui/icon";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ParticipantsList = () => {
-  const { getAllParticipants } = useAuth();
+  const { getAllParticipants, deleteUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("all");
 
@@ -59,6 +71,11 @@ const ParticipantsList = () => {
         {isActive ? "Активен" : "Ожидает активации"}
       </Badge>
     );
+  };
+
+  const handleDeleteUser = (userId: string, userName: string) => {
+    deleteUser(userId);
+    alert(`Пользователь "${userName}" удален`);
   };
 
   return (
@@ -132,6 +149,44 @@ const ParticipantsList = () => {
                   <div className="flex flex-col space-y-2">
                     {getRoleBadge(participant.role)}
                     {getStatusBadge(participant)}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Icon name="Trash2" size={14} className="mr-1" />
+                          Удалить
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>
+                            Удаление пользователя
+                          </AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Вы уверены, что хотите удалить пользователя "
+                            {participant.fullName}"? Это действие нельзя
+                            отменить.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Отмена</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() =>
+                              handleDeleteUser(
+                                participant.id,
+                                participant.fullName,
+                              )
+                            }
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Удалить
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
 

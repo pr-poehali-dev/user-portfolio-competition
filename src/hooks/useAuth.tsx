@@ -44,6 +44,8 @@ interface AuthContextType {
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
   getAllParticipants: () => User[];
+  deleteUser: (userId: string) => void;
+  deleteContest: (contestId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -226,6 +228,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return false;
   };
 
+  const deleteUser = (userId: string) => {
+    const userIndex = mockUsers.findIndex((u) => u.id === userId);
+    if (userIndex !== -1) {
+      mockUsers.splice(userIndex, 1);
+    }
+
+    const pendingIndex = pendingUsers.findIndex((u) => u.id === userId);
+    if (pendingIndex !== -1) {
+      pendingUsers.splice(pendingIndex, 1);
+    }
+  };
+
+  const deleteContest = (contestId: string) => {
+    // Implementation for deleting contest
+    console.log("Deleting contest:", contestId);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -243,6 +262,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ...pendingUsers,
           ADMIN_CREDENTIALS.user,
         ],
+        deleteUser,
+        deleteContest,
       }}
     >
       {children}
