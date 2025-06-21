@@ -254,8 +254,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getJuryUsers = () => {
-    return mockUsers.filter(
-      (user) => user.role === "teacher" || user.role === "educator",
+    return [...mockUsers, ...pendingUsers].filter(
+      (user) =>
+        user.role === "teacher" || user.role === "educator" || user.isJury,
     );
   };
 
