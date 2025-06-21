@@ -44,6 +44,13 @@ interface AuthContextType {
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
   getAllParticipants: () => User[];
+  getAllUsers: () => User[];
+  updateUserRole: (userId: string, newRole: UserRole) => Promise<boolean>;
+  updateUserProfile: (
+    userId: string,
+    profileData: Partial<User>,
+  ) => Promise<boolean>;
+  toggleJuryStatus: (userId: string) => Promise<boolean>;
   deleteUser: (userId: string) => void;
   deleteContest: (contestId: string) => void;
   getJuryUsers: () => User[];
@@ -252,6 +259,72 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const getAllUsers = () => {
+    return [...mockUsers, ...pendingUsers];
+  };
+
+  const updateUserRole = async (
+    userId: string,
+    newRole: UserRole,
+  ): Promise<boolean> => {
+    const userInMock = mockUsers.find((u) => u.id === userId);
+    const userInPending = pendingUsers.find((u) => u.id === userId);
+
+    if (userInMock) {
+      userInMock.role = newRole;
+      return true;
+    }
+
+    if (userInPending) {
+      userInPending.role = newRole;
+      return true;
+    }
+
+    return false;
+  };
+
+  const updateUserProfile = async (
+    userId: string,
+    profileData: Partial<User>,
+  ): Promise<boolean> => {
+    const userInMock = mockUsers.find((u) => u.id === userId);
+    const userInPending = pendingUsers.find((u) => u.id === userId);
+
+    if (userInMock) {
+      Object.assign(userInMock, profileData);
+      return true;
+    }
+
+    if (userInPending) {
+      Object.assign(userInPending, profileData);
+      return true;
+    }
+
+    return false;
+  };
+
+  const toggleJuryStatus = async (userId: string): Promise<boolean> => {
+    const user =
+      mockUsers.find((u) => u.id === userId) ||
+      pendingUsers.find((u) => u.id === userId);
+
+    if (user) {
+      // Если пользователь уже жюри, убираем статус
+      if (user.role === "jury") {
+        // Возвращаем к предыдущей роли (по умолчанию teacher)
+        user.role = user.position?.includes("воспитатель")
+          ? "educator"
+          : "teacher";
+      } else {
+        // Назначаем жюри
+        user.role = "jury";
+      }
+      return true;
+    }
+
+    return false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -269,6 +342,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           ...pendingUsers,
           ADMIN_CREDENTIALS.user,
         ],
+        getAllUsers,
+        updateUserRole,
+        updateUserProfile,
+        toggleJuryStatus,
         deleteUser,
         deleteContest,
         getJuryUsers,
