@@ -5,10 +5,11 @@ import CreateContest from "./CreateContest";
 import ManageContests from "./ManageContests";
 import GenerateDiplomas from "./GenerateDiplomas";
 import ManageUsers from "./ManageUsers";
+import ParticipantsList from "./ParticipantsList";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<
-    "manage" | "create" | "diplomas" | "users"
+    "manage" | "create" | "diplomas" | "users" | "participants"
   >("manage");
 
   const tabs = [
@@ -19,6 +20,11 @@ const AdminDashboard = () => {
       id: "users" as const,
       label: "Подтверждение участников",
       icon: "UserCheck",
+    },
+    {
+      id: "participants" as const,
+      label: "Участники",
+      icon: "Users",
     },
   ];
 
@@ -52,6 +58,7 @@ const AdminDashboard = () => {
         {activeTab === "create" && <CreateContest />}
         {activeTab === "diplomas" && <GenerateDiplomas />}
         {activeTab === "users" && <ManageUsers />}
+        {activeTab === "participants" && <ParticipantsList />}
       </div>
     </div>
   );

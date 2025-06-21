@@ -43,6 +43,7 @@ interface AuthContextType {
   getPendingUsers: () => User[];
   approveUser: (userId: string) => Promise<boolean>;
   rejectUser: (userId: string) => Promise<boolean>;
+  getAllParticipants: () => User[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,6 +58,7 @@ const ADMIN_CREDENTIALS = {
     email: "aigulrizat@mail.ru",
     role: "admin" as UserRole,
     emailConfirmed: true,
+    adminApproved: true,
   },
 };
 
@@ -68,6 +70,8 @@ const mockUsers: User[] = [
     email: "ivan@example.com",
     role: "teacher",
     emailConfirmed: true,
+    adminApproved: true,
+    institution: "МБОУ СОШ №15",
   },
   {
     id: "2",
@@ -75,6 +79,17 @@ const mockUsers: User[] = [
     email: "maria@example.com",
     role: "educator",
     emailConfirmed: true,
+    adminApproved: true,
+    institution: "МБДОУ Детский сад №7",
+  },
+  {
+    id: "3",
+    fullName: "Анна Иванова",
+    email: "anna@example.com",
+    role: "student",
+    emailConfirmed: true,
+    adminApproved: true,
+    institution: "МБОУ Гимназия №3",
   },
 ];
 
@@ -87,6 +102,7 @@ const pendingUsers: User[] = [
     role: "teacher",
     emailConfirmed: true,
     adminApproved: false,
+    institution: "МБОУ СОШ №22",
   },
   {
     id: "pending-2",
@@ -95,14 +111,16 @@ const pendingUsers: User[] = [
     role: "educator",
     emailConfirmed: true,
     adminApproved: false,
+    institution: "МБДОУ Детский сад №12",
   },
   {
     id: "pending-3",
-    fullName: "Анна Морозова",
-    email: "anna@example.com",
+    fullName: "Олег Смирнов",
+    email: "oleg@example.com",
     role: "parent",
-    emailConfirmed: true,
+    emailConfirmed: false,
     adminApproved: false,
+    institution: "МБОУ СОШ №8",
   },
 ];
 
@@ -129,10 +147,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Проверка остальных пользователей
     const foundUser = mockUsers.find((u) => u.email === email);
-    if (foundUser && foundUser.emailConfirmed && foundUser.adminApproved) {
-      setUser(foundUser);
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      return true;
+    if (foundUser) {
+      const canLogin = foundUser.emailConfirmed && foundUser.adminApproved;
+
+      if (canLogin) {
+        setUser(foundUser);
+        localStorage.setItem("user", JSON.stringify(foundUser));
+        return true;
+      }
     }
 
     return false;
@@ -216,6 +238,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         getPendingUsers,
         approveUser,
         rejectUser,
+        getAllParticipants: () => [
+          ...mockUsers,
+          ...pendingUsers,
+          ADMIN_CREDENTIALS.user,
+        ],
       }}
     >
       {children}
