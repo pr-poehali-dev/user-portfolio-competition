@@ -46,6 +46,7 @@ interface AuthContextType {
   getAllParticipants: () => User[];
   deleteUser: (userId: string) => void;
   deleteContest: (contestId: string) => void;
+  getJuryUsers: () => User[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -245,6 +246,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log("Deleting contest:", contestId);
   };
 
+  const getJuryUsers = () => {
+    return mockUsers.filter(
+      (user) => user.role === "teacher" || user.role === "educator",
+    );
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -264,6 +271,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ],
         deleteUser,
         deleteContest,
+        getJuryUsers,
       }}
     >
       {children}
