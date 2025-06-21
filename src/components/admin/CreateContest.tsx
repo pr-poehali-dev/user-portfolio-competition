@@ -277,18 +277,31 @@ const CreateContest = ({ contestId }: CreateContestProps) => {
             </div>
           </div>
 
-          {/* Жюри */}
-          <JurySection
-            jurySelectionMode={jurySelectionMode}
-            onModeChange={setJurySelectionMode}
-            selectedJury={selectedJury}
-            onJuryToggle={toggleJurySelection}
-            juryEmails={juryEmails}
-            onEmailUpdate={updateJuryEmail}
-            onEmailAdd={addJuryEmail}
-            onEmailRemove={removeJuryEmail}
-            juryUsers={getJuryUsers()}
-          />
+          {/* Жюри (необязательно) */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Icon name="Users" size={20} />
+              <Label className="text-lg font-medium">Жюри</Label>
+              <span className="text-sm text-gray-500">
+                (можно добавить позже)
+              </span>
+            </div>
+            <p className="text-sm text-gray-600">
+              Жюри можно назначить сейчас или добавить позже во время проведения
+              конкурса
+            </p>
+            <JurySection
+              jurySelectionMode={jurySelectionMode}
+              onModeChange={setJurySelectionMode}
+              selectedJury={selectedJury}
+              onJuryToggle={toggleJurySelection}
+              juryEmails={juryEmails}
+              onEmailUpdate={updateJuryEmail}
+              onEmailAdd={addJuryEmail}
+              onEmailRemove={removeJuryEmail}
+              juryUsers={getJuryUsers()}
+            />
+          </div>
 
           {/* Действия */}
           <div className="flex justify-end space-x-4 pt-6 border-t">

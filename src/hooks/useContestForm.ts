@@ -46,16 +46,17 @@ export const useContestForm = () => {
 
     if (selectedFiles.length === 0) return "Загрузите положение о конкурсе";
 
-    if (jurySelectionMode === "select") {
-      if (selectedJury.length < 3) return "Выберите минимум 3 членов жюри";
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const validJuryEmails = juryEmails.filter(
-        (email) => email.trim() && emailRegex.test(email.trim()),
-      );
-      if (validJuryEmails.length < 3)
-        return "Добавьте минимум 3 корректных email адреса жюри";
-    }
+    // Жюри теперь необязательно при создании конкурса
+    // if (jurySelectionMode === "select") {
+    //   if (selectedJury.length < 3) return "Выберите минимум 3 членов жюри";
+    // } else {
+    //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   const validJuryEmails = juryEmails.filter(
+    //     (email) => email.trim() && emailRegex.test(email.trim()),
+    //   );
+    //   if (validJuryEmails.length < 3)
+    //     return "Добавьте минимум 3 корректных email адреса жюри";
+    // }
 
     return null;
   };
