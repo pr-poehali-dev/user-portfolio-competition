@@ -4,16 +4,22 @@ import Icon from "@/components/ui/icon";
 import CreateContest from "./CreateContest";
 import ManageContests from "./ManageContests";
 import GenerateDiplomas from "./GenerateDiplomas";
+import ManageUsers from "./ManageUsers";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState<"manage" | "create" | "diplomas">(
-    "manage",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "manage" | "create" | "diplomas" | "users"
+  >("manage");
 
   const tabs = [
     { id: "manage" as const, label: "Управление конкурсами", icon: "Settings" },
     { id: "create" as const, label: "Создать конкурс", icon: "Plus" },
     { id: "diplomas" as const, label: "Дипломы", icon: "Award" },
+    {
+      id: "users" as const,
+      label: "Подтверждение участников",
+      icon: "UserCheck",
+    },
   ];
 
   return (
@@ -45,6 +51,7 @@ const AdminDashboard = () => {
         {activeTab === "manage" && <ManageContests />}
         {activeTab === "create" && <CreateContest />}
         {activeTab === "diplomas" && <GenerateDiplomas />}
+        {activeTab === "users" && <ManageUsers />}
       </div>
     </div>
   );

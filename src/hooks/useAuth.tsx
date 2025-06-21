@@ -20,6 +20,7 @@ interface User {
   email: string;
   role: UserRole;
   emailConfirmed?: boolean;
+  adminApproved?: boolean;
   position?: string;
   institution?: string;
   ageOrGrade?: string;
@@ -39,6 +40,9 @@ interface AuthContextType {
   confirmEmail: (token: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  getPendingUsers: () => User[];
+  approveUser: (userId: string) => Promise<boolean>;
+  rejectUser: (userId: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,6 +78,34 @@ const mockUsers: User[] = [
   },
 ];
 
+// Список неподтвержденных пользователей
+const pendingUsers: User[] = [
+  {
+    id: "pending-1",
+    fullName: "Елена Козлова",
+    email: "elena@example.com",
+    role: "teacher",
+    emailConfirmed: true,
+    adminApproved: false,
+  },
+  {
+    id: "pending-2",
+    fullName: "Дмитрий Волков",
+    email: "dmitry@example.com",
+    role: "educator",
+    emailConfirmed: true,
+    adminApproved: false,
+  },
+  {
+    id: "pending-3",
+    fullName: "Анна Морозова",
+    email: "anna@example.com",
+    role: "parent",
+    emailConfirmed: true,
+    adminApproved: false,
+  },
+];
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
@@ -97,7 +129,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Проверка остальных пользователей
     const foundUser = mockUsers.find((u) => u.email === email);
-    if (foundUser && foundUser.emailConfirmed) {
+    if (foundUser && foundUser.emailConfirmed && foundUser.adminApproved) {
       setUser(foundUser);
       localStorage.setItem("user", JSON.stringify(foundUser));
       return true;
@@ -120,13 +152,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email: data.email,
       role: data.role as UserRole,
       emailConfirmed: false,
+      adminApproved: false,
     };
 
     // В реальном проекте здесь будет отправка email
     console.log("Отправка email подтверждения на:", data.email);
 
-    // Добавляем в мок данные
-    mockUsers.push(newUser);
+    // Добавляем в список ожидающих подтверждения
+    pendingUsers.push(newUser);
 
     return true;
   };
@@ -142,6 +175,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("user");
   };
 
+  const getPendingUsers = () => {
+    return pendingUsers.filter((user) => !user.adminApproved);
+  };
+
+  const approveUser = async (userId: string): Promise<boolean> => {
+    const userIndex = pendingUsers.findIndex((u) => u.id === userId);
+    if (userIndex !== -1) {
+      const user = pendingUsers[userIndex];
+      user.adminApproved = true;
+      user.emailConfirmed = true;
+
+      // Перемещаем в основной список пользователей
+      mockUsers.push(user);
+      pendingUsers.splice(userIndex, 1);
+
+      return true;
+    }
+    return false;
+  };
+
+  const rejectUser = async (userId: string): Promise<boolean> => {
+    const userIndex = pendingUsers.findIndex((u) => u.id === userId);
+    if (userIndex !== -1) {
+      pendingUsers.splice(userIndex, 1);
+      return true;
+    }
+    return false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -151,6 +213,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         confirmEmail,
         logout,
         isAuthenticated: !!user,
+        getPendingUsers,
+        approveUser,
+        rejectUser,
       }}
     >
       {children}
