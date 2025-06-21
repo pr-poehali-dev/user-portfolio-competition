@@ -54,6 +54,15 @@ interface AuthContextType {
   deleteUser: (userId: string) => void;
   deleteContest: (contestId: string) => void;
   getJuryUsers: () => User[];
+  assignJuryToContest: (
+    contestId: number,
+    juryIds: string[],
+  ) => Promise<boolean>;
+  removeJuryFromContest: (
+    contestId: number,
+    juryId: string,
+  ) => Promise<boolean>;
+  getContestJury: (contestId: number) => User[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -258,6 +267,50 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return users.filter((user) => user.role === "jury" && user.adminApproved);
   };
 
+  const assignJuryToContest = async (
+    contestId: number,
+    juryIds: string[],
+  ): Promise<boolean> => {
+    try {
+      const contestJury = JSON.parse(
+        localStorage.getItem("contestJury") || "{}",
+      );
+      contestJury[contestId] = juryIds;
+      localStorage.setItem("contestJury", JSON.stringify(contestJury));
+      return true;
+    } catch (error) {
+      console.error("Ошибка назначения жюри:", error);
+      return false;
+    }
+  };
+
+  const removeJuryFromContest = async (
+    contestId: number,
+    juryId: string,
+  ): Promise<boolean> => {
+    try {
+      const contestJury = JSON.parse(
+        localStorage.getItem("contestJury") || "{}",
+      );
+      if (contestJury[contestId]) {
+        contestJury[contestId] = contestJury[contestId].filter(
+          (id: string) => id !== juryId,
+        );
+        localStorage.setItem("contestJury", JSON.stringify(contestJury));
+      }
+      return true;
+    } catch (error) {
+      console.error("Ошибка удаления жюри:", error);
+      return false;
+    }
+  };
+
+  const getContestJury = (contestId: number): User[] => {
+    const contestJury = JSON.parse(localStorage.getItem("contestJury") || "{}");
+    const juryIds = contestJury[contestId] || [];
+    return users.filter((user) => juryIds.includes(user.id));
+  };
+
   const getAllUsers = () => {
     return [...mockUsers, ...pendingUsers];
   };
@@ -348,6 +401,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         deleteUser,
         deleteContest,
         getJuryUsers,
+        assignJuryToContest,
+        removeJuryFromContest,
+        getContestJury,
       }}
     >
       {children}

@@ -211,6 +211,16 @@ const ManageContests = () => {
                     <Icon name="Users" size={14} className="mr-1" />
                     Участники
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      (window.location.hash = `#admin/jury/${contest.id}`)
+                    }
+                  >
+                    <Icon name="UserCheck" size={14} className="mr-1" />
+                    Назначить жюри
+                  </Button>
                   {contest.status === "completed" && (
                     <Button variant="outline" size="sm">
                       <Icon name="Award" size={14} className="mr-1" />

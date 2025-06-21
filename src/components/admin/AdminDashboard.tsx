@@ -6,12 +6,20 @@ import ManageContests from "./ManageContests";
 import GenerateDiplomas from "./GenerateDiplomas";
 import ManageUsers from "./ManageUsers";
 import ParticipantsList from "./ParticipantsList";
+import ManageJury from "./ManageJury";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<
-    "manage" | "create" | "edit" | "diplomas" | "users" | "participants"
+    | "manage"
+    | "create"
+    | "edit"
+    | "diplomas"
+    | "users"
+    | "participants"
+    | "jury"
   >("manage");
   const [editingContestId, setEditingContestId] = useState<number | null>(null);
+  const [juryContestId, setJuryContestId] = useState<number | null>(null);
 
   // Обработка хеша URL для навигации
   useState(() => {
@@ -23,6 +31,10 @@ const AdminDashboard = () => {
         const contestId = parseInt(hash.split("/")[2]);
         setEditingContestId(contestId);
         setActiveTab("edit");
+      } else if (hash.startsWith("#admin/jury/")) {
+        const contestId = parseInt(hash.split("/")[2]);
+        setJuryContestId(contestId);
+        setActiveTab("jury");
       } else {
         setActiveTab("manage");
       }
@@ -47,6 +59,11 @@ const AdminDashboard = () => {
       id: "participants" as const,
       label: "Участники",
       icon: "Users",
+    },
+    {
+      id: "jury" as const,
+      label: "Управление жюри",
+      icon: "UserCheck",
     },
   ];
 
@@ -82,6 +99,7 @@ const AdminDashboard = () => {
         {activeTab === "diplomas" && <GenerateDiplomas />}
         {activeTab === "users" && <ManageUsers />}
         {activeTab === "participants" && <ParticipantsList />}
+        {activeTab === "jury" && <ManageJury contestId={juryContestId} />}
       </div>
     </div>
   );
