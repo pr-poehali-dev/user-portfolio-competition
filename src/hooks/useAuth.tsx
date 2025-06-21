@@ -6,33 +6,73 @@ import {
   ReactNode,
 } from "react";
 
-type UserRole = "participant" | "jury" | "admin";
+type UserRole =
+  | "educator"
+  | "teacher"
+  | "student"
+  | "parent"
+  | "jury"
+  | "admin";
 
 interface User {
   id: string;
-  name: string;
+  fullName: string;
+  email: string;
   role: UserRole;
+  emailConfirmed?: boolean;
+  position?: string;
+  institution?: string;
+  ageOrGrade?: string;
+}
+
+interface RegisterData {
+  fullName: string;
+  email: string;
+  password: string;
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string, role: UserRole) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
+  confirmEmail: (token: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Мок данные для демонстрации
-const mockUsers = {
-  participant: {
-    id: "1",
-    name: "Иван Участник",
-    role: "participant" as UserRole,
+// Встроенный администратор
+const ADMIN_CREDENTIALS = {
+  email: "aigulrizat@mail.ru",
+  password: "shkola098890",
+  user: {
+    id: "admin-1",
+    fullName: "Главный администратор",
+    email: "aigulrizat@mail.ru",
+    role: "admin" as UserRole,
+    emailConfirmed: true,
   },
-  jury: { id: "2", name: "Мария Жюри", role: "jury" as UserRole },
-  admin: { id: "3", name: "Александр Админ", role: "admin" as UserRole },
 };
+
+// Мок данные для демонстрации
+const mockUsers: User[] = [
+  {
+    id: "1",
+    fullName: "Иван Петров",
+    email: "ivan@example.com",
+    role: "teacher",
+    emailConfirmed: true,
+  },
+  {
+    id: "2",
+    fullName: "Мария Сидорова",
+    email: "maria@example.com",
+    role: "educator",
+    emailConfirmed: true,
+  },
+];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -44,19 +84,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const login = async (
-    email: string,
-    password: string,
-    role: UserRole,
-  ): Promise<boolean> => {
-    // Мок авторизации - в реальном проекте здесь будет API
-    if (email && password) {
-      const userData = mockUsers[role];
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+  const login = async (email: string, password: string): Promise<boolean> => {
+    // Проверка встроенного администратора
+    if (
+      email === ADMIN_CREDENTIALS.email &&
+      password === ADMIN_CREDENTIALS.password
+    ) {
+      setUser(ADMIN_CREDENTIALS.user);
+      localStorage.setItem("user", JSON.stringify(ADMIN_CREDENTIALS.user));
       return true;
     }
+
+    // Проверка остальных пользователей
+    const foundUser = mockUsers.find((u) => u.email === email);
+    if (foundUser && foundUser.emailConfirmed) {
+      setUser(foundUser);
+      localStorage.setItem("user", JSON.stringify(foundUser));
+      return true;
+    }
+
     return false;
+  };
+
+  const register = async (data: RegisterData): Promise<boolean> => {
+    // Проверка на существующий email
+    const existingUser = mockUsers.find((u) => u.email === data.email);
+    if (existingUser) {
+      return false;
+    }
+
+    // Создание нового пользователя
+    const newUser: User = {
+      id: Date.now().toString(),
+      fullName: data.fullName,
+      email: data.email,
+      role: data.role as UserRole,
+      emailConfirmed: false,
+    };
+
+    // В реальном проекте здесь будет отправка email
+    console.log("Отправка email подтверждения на:", data.email);
+
+    // Добавляем в мок данные
+    mockUsers.push(newUser);
+
+    return true;
+  };
+
+  const confirmEmail = async (token: string): Promise<boolean> => {
+    // В реальном проекте здесь будет проверка токена
+    console.log("Подтверждение email с токеном:", token);
+    return true;
   };
 
   const logout = () => {
@@ -69,6 +147,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         login,
+        register,
+        confirmEmail,
         logout,
         isAuthenticated: !!user,
       }}

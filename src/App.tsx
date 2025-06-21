@@ -7,9 +7,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import ParticipantLogin from "./pages/ParticipantLogin";
-import JuryLogin from "./pages/JuryLogin";
-import AdminLogin from "./pages/AdminLogin";
 import Unauthorized from "./pages/Unauthorized";
 import NotFound from "./pages/NotFound";
 
@@ -24,9 +21,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/login/participant" element={<ParticipantLogin />} />
-            <Route path="/login/jury" element={<JuryLogin />} />
-            <Route path="/login/admin" element={<AdminLogin />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             <Route
