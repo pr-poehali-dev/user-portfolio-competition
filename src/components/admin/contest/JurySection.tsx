@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import Icon from "@/components/ui/icon";
 import { JurySelectionMode, JuryUser } from "@/types/contest";
+import JurySelectionList from "./JurySelectionList";
 
 interface JurySectionProps {
   jurySelectionMode: JurySelectionMode;
