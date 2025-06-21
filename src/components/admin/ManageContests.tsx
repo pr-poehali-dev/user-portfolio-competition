@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import { useAuth } from "@/hooks/useAuth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,38 +17,52 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const ManageContests = () => {
-  const [contests, setContests] = useState([
-    {
-      id: 1,
-      name: "Конкурс дизайна 2024",
-      participants: 15,
-      status: "active",
-      startDate: "2024-03-01",
-      endDate: "2024-03-20",
-      totalWorks: 15,
-      evaluatedWorks: 8,
-    },
-    {
-      id: 2,
-      name: "Архитектурный конкурс",
-      participants: 12,
-      status: "evaluation",
-      startDate: "2024-02-15",
-      endDate: "2024-03-15",
-      totalWorks: 12,
-      evaluatedWorks: 12,
-    },
-    {
-      id: 3,
-      name: "Конкурс инноваций",
-      participants: 20,
-      status: "completed",
-      startDate: "2024-02-01",
-      endDate: "2024-03-10",
-      totalWorks: 20,
-      evaluatedWorks: 20,
-    },
-  ]);
+  const { getContests } = useAuth();
+  const [contests, setContests] = useState(() => {
+    const savedContests = getContests();
+    return savedContests.length > 0
+      ? savedContests
+      : [
+          {
+            id: 1,
+            name: "Конкурс дизайна 2024",
+            participants: 15,
+            status: "active",
+            startDate: "2024-03-01",
+            endDate: "2024-03-20",
+            totalWorks: 15,
+            evaluatedWorks: 8,
+          },
+          {
+            id: 2,
+            name: "Архитектурный конкурс",
+            participants: 12,
+            status: "evaluation",
+            startDate: "2024-02-15",
+            endDate: "2024-03-15",
+            totalWorks: 12,
+            evaluatedWorks: 12,
+          },
+          {
+            id: 3,
+            name: "Конкурс инноваций",
+            participants: 20,
+            status: "completed",
+            startDate: "2024-02-01",
+            endDate: "2024-03-10",
+            totalWorks: 20,
+            evaluatedWorks: 20,
+          },
+        ];
+  });
+
+  // Обновляем список конкурсов при монтировании компонента
+  useEffect(() => {
+    const savedContests = getContests();
+    if (savedContests.length > 0) {
+      setContests(savedContests);
+    }
+  }, []);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

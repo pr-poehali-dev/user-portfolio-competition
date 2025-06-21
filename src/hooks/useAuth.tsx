@@ -267,6 +267,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return users.filter((user) => user.role === "jury" && user.adminApproved);
   };
 
+  // Добавляем функции для работы с конкурсами
+  const createContest = (contestData: any): boolean => {
+    try {
+      const contests = JSON.parse(localStorage.getItem("contests") || "[]");
+      const newContest = {
+        ...contestData,
+        id: Date.now(),
+        participants: 0,
+        totalWorks: 0,
+        evaluatedWorks: 0,
+      };
+      contests.push(newContest);
+      localStorage.setItem("contests", JSON.stringify(contests));
+      return true;
+    } catch (error) {
+      console.error("Ошибка создания конкурса:", error);
+      return false;
+    }
+  };
+
+  const getContests = () => {
+    return JSON.parse(localStorage.getItem("contests") || "[]");
+  };
+
   const assignJuryToContest = async (
     contestId: number,
     juryIds: string[],
@@ -308,7 +332,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const getContestJury = (contestId: number): User[] => {
     const contestJury = JSON.parse(localStorage.getItem("contestJury") || "{}");
     const juryIds = contestJury[contestId] || [];
-    return users.filter((user) => juryIds.includes(user.id));
+    return mockUsers.filter((user) => juryIds.includes(user.id));
   };
 
   const getAllUsers = () => {
@@ -404,6 +428,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         assignJuryToContest,
         removeJuryFromContest,
         getContestJury,
+        createContest,
+        getContests,
+        createContest,
+        getContests,
       }}
     >
       {children}

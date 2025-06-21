@@ -98,14 +98,21 @@ const CreateContest = ({ contestId }: CreateContestProps) => {
 
     console.log("Создание конкурса:", contestData);
 
-    // Имитация успешной отправки
-    setTimeout(() => {
+    // Сохраняем конкурс через useAuth
+    const { createContest } = useAuth();
+    const success = createContest(contestData);
+
+    if (success) {
       alert(
         isDraft
           ? "Конкурс сохранен как черновик"
           : "Конкурс успешно создан и опубликован!",
       );
-    }, 500);
+      // Перенаправляем на страницу управления конкурсами
+      window.location.hash = "#admin";
+    } else {
+      alert("Ошибка при создании конкурса");
+    }
   };
 
   return (
