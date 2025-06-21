@@ -68,23 +68,39 @@ const CreateContest = () => {
       return;
     }
 
+    // Дополнительная проверка файлов
+    if (
+      selectedFiles.some(
+        (file) => file.size > formData.maxFileSize * 1024 * 1024,
+      )
+    ) {
+      alert(
+        `Один или несколько файлов превышают максимальный размер ${formData.maxFileSize}MB`,
+      );
+      return;
+    }
+
     const contestData: ContestData = {
       ...formData,
       regulations: selectedFiles,
       jury:
         jurySelectionMode === "select"
           ? selectedJury
-          : juryEmails.filter((email) => email.trim()),
+          : juryEmails.filter((email) => email.trim() && email.includes("@")),
       status: isDraft ? "draft" : "published",
       createdAt: new Date().toISOString(),
     };
 
     console.log("Создание конкурса:", contestData);
-    alert(
-      isDraft
-        ? "Конкурс сохранен как черновик"
-        : "Конкурс успешно создан и опубликован!",
-    );
+
+    // Имитация успешной отправки
+    setTimeout(() => {
+      alert(
+        isDraft
+          ? "Конкурс сохранен как черновик"
+          : "Конкурс успешно создан и опубликован!",
+      );
+    }, 500);
   };
 
   return (

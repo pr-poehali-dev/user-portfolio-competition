@@ -69,7 +69,7 @@ const JurySection = ({
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     checked={selectedJury.includes(juryUser.id)}
-                    onChange={() => onJuryToggle(juryUser.id)}
+                    onCheckedChange={() => onJuryToggle(juryUser.id)}
                   />
                   <div className="flex-1">
                     <p className="font-medium">{juryUser.fullName}</p>
